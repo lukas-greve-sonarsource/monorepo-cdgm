@@ -44,7 +44,7 @@ scan-cli:
   only:
     refs:
       - merge_requests
-      - master
+      - main
       - develop
     # Run stage only if files impacting that component are changed
     # (Don't reanalyze the whole monorepo if not needed)
@@ -81,7 +81,7 @@ scan-dotnet:
   only:
     refs:
       - merge_requests
-      - master
+      - main
       - develop
       - /^.*(fast|aio|all-in-one)\/.*$/
     changes:
@@ -113,7 +113,7 @@ scan-maven:
   only:
     refs:
       - merge_requests
-      - master
+      - main
       - develop
       - /^.*(fast|aio|all-in-one)\/.*$/
     changes:
@@ -146,7 +146,7 @@ scan-gradle:
   only:
     refs:
       - merge_requests
-      - master
+      - main
       - develop
       - /^.*(fast|aio|all-in-one)\/.*$/
     changes:

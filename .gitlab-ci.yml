@@ -4,7 +4,6 @@ variables:
   GIT_DEPTH: 0
   ARTIFACT_DIR: build
 
-# Let's trigger an analysis
 # stages is a list of job "stages" that will run sequentially
 # In the below case 1) run-test 2) lint and 3) scan
 # Each stage can be composed of several jobs that will run in parallel

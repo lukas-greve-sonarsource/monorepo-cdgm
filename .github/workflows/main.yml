@@ -1,0 +1,130 @@
+name: lukas147/monorepo-cdgm
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+jobs:
+  scan-cli:
+    runs-on: ubuntu-latest
+    container:
+      image: sonarsource/sonar-scanner-cli:latest
+    if: (github.event_type == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    timeout-minutes: 60
+    env:
+      GIT_DEPTH: 0
+      ARTIFACT_DIR: build
+    steps:
+    - uses: actions/checkout@v3.5.0
+      with:
+        fetch-depth: 0
+        lfs: true
+    - uses: actions/cache@v3.3.1
+      with:
+        path: ".sonar/cache"
+        key: sonarscanner-${{ github.event.repository.name }}
+    - run: apk add --update --no-cache python3 py3-pip
+    - run: pip install sonar-tools
+    - run: apk add curl
+    - run: apk add coreutils
+    - run: cd comp-cli
+    - run: sonar-scanner -Dsonar.qualitygate.wait=true -X
+    - run: cd -
+  scan-dotnet:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:3.1
+    if: (github.event_type == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads//^.*(fast|aio|all-in-one)\/.*$/')
+    timeout-minutes: 60
+    env:
+      GIT_DEPTH: 0
+      ARTIFACT_DIR: build
+    steps:
+    - uses: actions/checkout@v3.5.0
+      with:
+        fetch-depth: 0
+        lfs: true
+    - uses: actions/cache@v3.3.1
+      with:
+        path: ".sonar/cache"
+        key: sonarscanner-${{ github.event.repository.name }}
+    - run: dotnet tool install dotnet-sonarscanner --global
+    - run: export PATH="$PATH:/root/.dotnet/tools"
+    - run: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -yq install openjdk-11-jdk
+    - run: cd comp-dotnet
+    - run: dotnet sonarscanner begin /k:"demo:gitlab-ci-mono-dotnet" /n:"GitLab-CI / monorepo .Net Core" /d:"sonar.host.url=$SONAR_HOST_URL" /d:"sonar.login=$SONAR_TOKEN" /d:"sonar.qualitygate.wait=true"
+    - run: dotnet build dotnetcore-sample.sln
+    - run: dotnet sonarscanner end /d:"sonar.login=$SONAR_TOKEN"
+    - run: cd -
+  scan-maven:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:latest
+    if: (github.event_type == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads//^.*(fast|aio|all-in-one)\/.*$/')
+    timeout-minutes: 60
+    env:
+      GIT_DEPTH: 0
+      ARTIFACT_DIR: build
+      MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+      MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+    steps:
+    - uses: actions/checkout@v3.5.0
+      with:
+        fetch-depth: 0
+        lfs: true
+    - uses: actions/cache@v3.3.1
+      with:
+        path: |-
+          .m2/repository/
+          target/
+        key: maven-${{ github.event.repository.name }}
+    - run: cd comp-maven
+    - run: 'mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent install org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.qualitygate.wait=true'
+    - run: cd -
+  scan-gradle:
+    runs-on: ubuntu-latest
+    container:
+      image: gradle:6.3.0-jdk11
+    if: (github.event_type == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads//^.*(fast|aio|all-in-one)\/.*$/')
+    timeout-minutes: 60
+    env:
+      GIT_DEPTH: 0
+      ARTIFACT_DIR: build
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+    steps:
+    - uses: actions/checkout@v3.5.0
+      with:
+        fetch-depth: 0
+        lfs: true
+    - uses: actions/cache@v3.3.1
+      with:
+        path: |-
+          comp-gradle/build
+          .gradle
+        key: gradle-${{ github.event.repository.name }}
+    - run: export GRADLE_USER_HOME=`pwd`/.gradle
+    - run: cd comp-gradle
+    - run: "./gradlew build sonarqube --info -Dsonar.qualitygate.wait=true"
+    - run: cd -
+  scan-cli-aio:
+    runs-on: ubuntu-latest
+    container:
+      image: sonarsource/sonar-scanner-cli:latest
+    if: (github.ref == 'refs/heads//^.*(fast|aio|all-in-one)\/.*$/' || github.ref == 'refs/heads//^.*aio\/.*$/' || github.ref == 'refs/heads//^.*all-in-one.*$/')
+    timeout-minutes: 60
+    env:
+      GIT_DEPTH: 0
+      ARTIFACT_DIR: build
+    steps:
+    - uses: actions/checkout@v3.5.0
+      with:
+        fetch-depth: 0
+        lfs: true
+    - uses: actions/cache@v3.3.1
+      with:
+        path: ".sonar/cache"
+        key: sonarscanner-${{ github.event.repository.name }}
+    - run: cd comp-cli
+    - run: sonar-scanner -Dsonar.qualitygate.wait=true -X
+    - run: cd -

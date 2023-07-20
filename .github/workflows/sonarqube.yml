@@ -33,7 +33,7 @@ on:
     pull_request:
       types: [opened, synchronize, reopened]
     paths:
-#      - '.gitlab-ci.yml'
+      - '.gitlab-ci.yml'
       - '.gitignore'
       - 'comp-cli/**/*''
 

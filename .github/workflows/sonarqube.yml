@@ -30,6 +30,7 @@ on:
   push:
      paths:
       - 'comp-cli/*'
+      - '.github/workflows/*'
      branches:
       - main
   pull_request:

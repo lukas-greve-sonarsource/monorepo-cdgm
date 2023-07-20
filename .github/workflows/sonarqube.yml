@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Evaluate which directory we are in
         run:
-          pwd 
+          pwd && ls -all
           
       - name: Analyze with SonarQube
 

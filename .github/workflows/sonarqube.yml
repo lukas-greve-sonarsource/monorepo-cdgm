@@ -49,7 +49,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Move to the project's directory
-        run:
+        run: |
           cd comp-cli
       - name: Analyze with SonarQube
         # You can pin the exact commit or the version.

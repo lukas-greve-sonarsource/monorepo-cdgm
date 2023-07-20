@@ -28,15 +28,18 @@ name: SonarQube analysis
 
 on:
   push:
-    branches:
-      - main
-    pull_request:
-      types: [opened, synchronize, reopened]
-    paths:
+     paths:
       - '.gitlab-ci.yml'
       - '.gitignore'
-      - 'comp-cli/**/*''
-
+      - 'comp-cli/*'
+     branches:
+      - main
+  pull_request:
+     types: [opened, synchronize, reopened]
+     paths:
+      - '.gitlab-ci.yml'
+      - '.gitignore'
+      - 'comp-cli/*'
 permissions:
   pull-requests: read # allows SonarQube to decorate PRs with analysis results
 
